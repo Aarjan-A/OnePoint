@@ -1,0 +1,84 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background colors - Dark slate theme */
+    --background: 220 25% 10%;
+    --foreground: 210 20% 98%;
+    
+    /* Card with glassmorphism */
+    --card: 220 20% 15%;
+    --card-foreground: 210 20% 98%;
+    
+    /* Popover */
+    --popover: 220 25% 12%;
+    --popover-foreground: 210 20% 98%;
+    
+    /* Primary - Purple/Violet accent */
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 20% 98%;
+    
+    /* Secondary - Lighter purple */
+    --secondary: 262 50% 25%;
+    --secondary-foreground: 210 20% 98%;
+    
+    /* Muted */
+    --muted: 220 20% 20%;
+    --muted-foreground: 210 15% 70%;
+    
+    /* Accent - Purple variant */
+    --accent: 262 60% 65%;
+    --accent-foreground: 210 20% 98%;
+    
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 20% 98%;
+    
+    /* Border */
+    --border: 220 20% 25%;
+    --input: 220 20% 25%;
+    --ring: 262 83% 58%;
+    
+    /* Radius */
+    --radius: 1rem;
+    
+    /* Glassmorphism specific */
+    --glass-bg: rgba(30, 35, 50, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+  
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300;
+  }
+  
+  .glass-card-hover:hover {
+    background: rgba(30, 35, 50, 0.6);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+}
