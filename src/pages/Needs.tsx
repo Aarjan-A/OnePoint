@@ -91,7 +91,7 @@ export default function Needs() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">My Needs</h1>
           <Button 
-            className="rounded-xl bg-primary hover:bg-primary/90"
+            className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9]"
             onClick={() => setCreateNeedOpen(true)}
           >
             <Plus className="w-5 h-5 mr-2" />
@@ -108,7 +108,7 @@ export default function Needs() {
           <div className="glass-card rounded-2xl p-8 text-center">
             <p className="text-muted-foreground mb-4">You haven't created any needs yet</p>
             <Button 
-              className="rounded-xl bg-primary hover:bg-primary/90"
+              className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9]"
               onClick={() => setCreateNeedOpen(true)}
             >
               <Plus className="w-5 h-5 mr-2" />
