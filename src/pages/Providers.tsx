@@ -153,7 +153,7 @@ export default function Providers() {
                   <span>Available in your area</span>
                 </div>
 
-                <Button className="w-full rounded-xl bg-primary hover:bg-primary/90">
+                <Button className="w-full rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9]">
                   View Profile
                 </Button>
               </div>
