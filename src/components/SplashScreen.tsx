@@ -1,89 +1,118 @@
 import { useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, CheckCircle, Zap, Shield, Brain } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function SplashScreen({ onComplete }: { onComplete: () => void }) {
-  const [glowPosition, setGlowPosition] = useState(0);
+  const [currentFeature, setCurrentFeature] = useState(0);
+  const [canContinue, setCanContinue] = useState(false);
+
+  const features = [
+    {
+      icon: Brain,
+      title: 'AI-Powered Assistance',
+      description: 'Smart suggestions for your daily needs with intelligent matching'
+    },
+    {
+      icon: Zap,
+      title: 'Instant Connections',
+      description: 'Connect with verified local service providers in seconds'
+    },
+    {
+      icon: Shield,
+      title: 'Privacy First',
+      description: 'Your data stays yours. Complete control over your information'
+    },
+    {
+      icon: CheckCircle,
+      title: 'Simple & Efficient',
+      description: 'Manage all your real-life tasks from one beautiful interface'
+    }
+  ];
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setGlowPosition((prev) => (prev + 1) % 100);
-    }, 30);
-
     const timer = setTimeout(() => {
-      onComplete();
-    }, 3000);
+      setCanContinue(true);
+    }, 2000);
 
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timer);
-    };
-  }, [onComplete]);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleNext = () => {
+    if (currentFeature < features.length - 1) {
+      setCurrentFeature(currentFeature + 1);
+    } else {
+      onComplete();
+    }
+  };
+
+  const currentFeatureData = features[currentFeature];
+  const Icon = currentFeatureData.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-[#0a0e1a] to-black" />
-        <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-gradient-to-br from-black via-[#0a0e1a] to-black p-6">
+      {/* Logo and Brand */}
+      <div className="flex-1 flex flex-col items-center justify-center max-w-md w-full">
+        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center mb-6">
+          <Sparkles className="w-12 h-12 text-white" />
+        </div>
+        
+        <h1 className="text-4xl font-bold text-white mb-2 text-center">
+          OnePoint ALO
+        </h1>
+        <p className="text-muted-foreground text-center mb-12">
+          Autonomous Life Operating System
+        </p>
+
+        {/* Feature Display */}
+        <div className="glass-card rounded-3xl p-8 w-full mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="w-16 h-16 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center mb-6 mx-auto">
+            <Icon className="w-8 h-8 text-[#7C3AED]" />
+          </div>
+          
+          <h2 className="text-2xl font-bold text-foreground mb-3 text-center">
+            {currentFeatureData.title}
+          </h2>
+          <p className="text-muted-foreground text-center leading-relaxed">
+            {currentFeatureData.description}
+          </p>
+        </div>
+
+        {/* Progress Dots */}
+        <div className="flex gap-2 mb-6">
+          {features.map((_, index) => (
             <div
-              key={i}
-              className="absolute rounded-full bg-primary/10 blur-3xl animate-pulse"
-              style={{
-                width: `${Math.random() * 300 + 100}px`,
-                height: `${Math.random() * 300 + 100}px`,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${Math.random() * 3 + 2}s`,
-              }}
+              key={index}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === currentFeature 
+                  ? 'w-8 bg-[#7C3AED]' 
+                  : index < currentFeature 
+                  ? 'w-2 bg-[#7C3AED]/50' 
+                  : 'w-2 bg-muted/30'
+              }`}
             />
           ))}
         </div>
       </div>
 
-      {/* Logo and text container */}
-      <div className="relative z-10 flex flex-col items-center gap-8 px-4">
-        {/* Logo with pulsing glow */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-primary/30 blur-3xl rounded-full animate-pulse" />
-          <div className="relative w-32 h-32 rounded-3xl bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center shadow-2xl shadow-primary/50">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent rounded-3xl" />
-            <Sparkles className="w-16 h-16 text-white drop-shadow-2xl" />
-          </div>
-        </div>
-
-        {/* Brand name with animated glow */}
-        <div className="relative overflow-hidden">
-          <h1 className="text-6xl font-black tracking-tight relative z-10">
-            <span className="inline-block relative">
-              <span className="glow-text-white text-white">OnePoint</span>
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-70"
-                style={{
-                  transform: `translateX(${glowPosition - 50}%)`,
-                  transition: 'transform 0.03s linear',
-                }}
-              />
-            </span>
-          </h1>
-        </div>
-
-        {/* Subtitle */}
-        <p className="text-lg text-muted-foreground font-medium tracking-wide">
-          Autonomous Life Operating System
-        </p>
-
-        {/* Loading indicator */}
-        <div className="w-48 h-1 bg-muted/30 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-primary via-accent to-primary rounded-full animate-pulse"
-            style={{
-              width: `${(glowPosition % 100)}%`,
-              transition: 'width 0.1s linear',
-            }}
-          />
-        </div>
+      {/* Action Buttons */}
+      <div className="w-full max-w-md space-y-3">
+        <Button
+          onClick={handleNext}
+          disabled={!canContinue}
+          className="w-full h-14 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-lg"
+        >
+          {currentFeature < features.length - 1 ? 'Next' : 'Get Started'}
+        </Button>
+        
+        {currentFeature > 0 && (
+          <Button
+            variant="ghost"
+            onClick={onComplete}
+            className="w-full text-muted-foreground hover:text-foreground"
+          >
+            Skip
+          </Button>
+        )}
       </div>
     </div>
   );
