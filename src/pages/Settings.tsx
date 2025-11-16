@@ -27,7 +27,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen pb-24">
       <Navigation />
       
       <div className="px-4 py-6">
