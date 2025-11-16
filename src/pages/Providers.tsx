@@ -13,6 +13,52 @@ interface Provider {
   verified_documents: string[];
 }
 
+// Demo data for providers
+const DEMO_PROVIDERS: Provider[] = [
+  {
+    id: '1',
+    business_name: 'Swift Plumbing Services',
+    categories: ['Plumbing', 'Emergency'],
+    rating: 4.9,
+    verified_documents: ['license', 'insurance'],
+  },
+  {
+    id: '2',
+    business_name: 'Elite Electricians',
+    categories: ['Electrical', 'Installation'],
+    rating: 4.8,
+    verified_documents: ['license', 'insurance', 'background-check'],
+  },
+  {
+    id: '3',
+    business_name: 'Green Thumb Landscaping',
+    categories: ['Landscaping', 'Maintenance'],
+    rating: 4.7,
+    verified_documents: ['license'],
+  },
+  {
+    id: '4',
+    business_name: 'Home Clean Pros',
+    categories: ['Cleaning', 'Deep Clean'],
+    rating: 4.9,
+    verified_documents: ['insurance', 'background-check'],
+  },
+  {
+    id: '5',
+    business_name: 'Tech Support Now',
+    categories: ['IT Support', 'Tech'],
+    rating: 4.6,
+    verified_documents: ['license'],
+  },
+  {
+    id: '6',
+    business_name: 'Perfect Paint Co',
+    categories: ['Painting', 'Interior'],
+    rating: 4.8,
+    verified_documents: ['license', 'insurance'],
+  },
+];
+
 export default function Providers() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,16 +77,19 @@ export default function Providers() {
         .limit(20);
 
       if (error) throw error;
-      setProviders(data || []);
+      // Use demo data if no providers in database
+      setProviders(data && data.length > 0 ? data : DEMO_PROVIDERS);
     } catch (error) {
       console.error('Error fetching providers:', error);
+      // Fallback to demo data on error
+      setProviders(DEMO_PROVIDERS);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen pb-24">
       <Navigation />
       
       <div className="p-4">
