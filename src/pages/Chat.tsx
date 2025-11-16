@@ -46,43 +46,58 @@ export default function Chat() {
     setLoading(true);
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer sk-proj-8kCs_DagrhCF2f2Ad7GwQxwhaAPPmGvBW7P9tOpideSD_`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a helpful assistant for OnePoint ALO, an app that helps users manage their daily needs by connecting them with local service providers. Help users create needs, find providers, and manage tasks. Be concise and friendly.',
-            },
-            ...messages.map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: input },
-          ],
-          max_tokens: 500,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get response from AI');
-      }
-
-      const data = await response.json();
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: data.choices[0].message.content,
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      // TODO: INTEGRATE WITH YOUR AI BACKEND
+      // Option 1: Use Blink AI SDK
+      // const { text } = await blink.ai.generateText({
+      //   prompt: input,
+      //   model: 'gpt-4.1-mini'
+      // });
+      
+      // Option 2: Use OpenAI directly (add your API key to secrets)
+      // const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+      //   },
+      //   body: JSON.stringify({
+      //     model: 'gpt-3.5-turbo',
+      //     messages: [
+      //       {
+      //         role: 'system',
+      //         content: 'You are a helpful assistant for OnePoint ALO...',
+      //       },
+      //       ...messages.map(m => ({ role: m.role, content: m.content })),
+      //       { role: 'user', content: input },
+      //     ],
+      //   }),
+      // });
+      
+      // Option 3: Use WebSocket for real-time streaming
+      // const ws = new WebSocket('wss://your-websocket-server.com');
+      // ws.send(JSON.stringify({ type: 'message', content: input }));
+      
+      // Simulated response for demo (replace with actual API call)
+      const demoResponses = [
+        "I'd be happy to help you with that! Let me understand your need better. What specific service are you looking for?",
+        "Great! I can help you find the right provider. Could you share more details about your location and timing preferences?",
+        "I've found several highly-rated providers in your area. Would you like me to show you the top matches?",
+        "Let me create a need for you. I'll need a few more details to match you with the perfect provider.",
+      ];
+      
+      setTimeout(() => {
+        const assistantMessage: Message = {
+          role: 'assistant',
+          content: demoResponses[Math.floor(Math.random() * demoResponses.length)],
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+        setLoading(false);
+      }, 1500);
+      
     } catch (error: any) {
       toast.error('Failed to send message. Please try again.');
       console.error('Chat error:', error);
-    } finally {
       setLoading(false);
     }
   };
@@ -95,7 +110,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navigation />
       
       <div className="flex-1 flex flex-col px-4 py-4 pb-24">
