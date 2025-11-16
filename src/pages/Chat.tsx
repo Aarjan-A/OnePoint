@@ -46,58 +46,43 @@ export default function Chat() {
     setLoading(true);
 
     try {
-      // TODO: INTEGRATE WITH YOUR AI BACKEND
-      // Option 1: Use Blink AI SDK
-      // const { text } = await blink.ai.generateText({
-      //   prompt: input,
-      //   model: 'gpt-4.1-mini'
-      // });
+      // Use OpenAI API for real AI responses
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer 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',
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful assistant for OnePoint ALO, an autonomous life operating system. Help users manage their needs, find service providers, and organize their tasks efficiently. Be concise and friendly.',
+            },
+            ...messages.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: userMessage.content },
+          ],
+        }),
+      });
+
+      const data = await response.json();
       
-      // Option 2: Use OpenAI directly (add your API key to secrets)
-      // const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-      //   },
-      //   body: JSON.stringify({
-      //     model: 'gpt-3.5-turbo',
-      //     messages: [
-      //       {
-      //         role: 'system',
-      //         content: 'You are a helpful assistant for OnePoint ALO...',
-      //       },
-      //       ...messages.map(m => ({ role: m.role, content: m.content })),
-      //       { role: 'user', content: input },
-      //     ],
-      //   }),
-      // });
+      if (data.error) {
+        throw new Error(data.error.message);
+      }
+
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.choices[0].message.content,
+        timestamp: new Date(),
+      };
       
-      // Option 3: Use WebSocket for real-time streaming
-      // const ws = new WebSocket('wss://your-websocket-server.com');
-      // ws.send(JSON.stringify({ type: 'message', content: input }));
-      
-      // Simulated response for demo (replace with actual API call)
-      const demoResponses = [
-        "I'd be happy to help you with that! Let me understand your need better. What specific service are you looking for?",
-        "Great! I can help you find the right provider. Could you share more details about your location and timing preferences?",
-        "I've found several highly-rated providers in your area. Would you like me to show you the top matches?",
-        "Let me create a need for you. I'll need a few more details to match you with the perfect provider.",
-      ];
-      
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          role: 'assistant',
-          content: demoResponses[Math.floor(Math.random() * demoResponses.length)],
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-        setLoading(false);
-      }, 1500);
-      
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error: any) {
-      toast.error('Failed to send message. Please try again.');
+      toast.error(error.message || 'Failed to send message. Please try again.');
       console.error('Chat error:', error);
+    } finally {
       setLoading(false);
     }
   };
@@ -184,7 +169,7 @@ export default function Chat() {
             onClick={sendMessage}
             disabled={loading || !input.trim()}
             size="icon"
-            className="rounded-xl bg-primary hover:bg-primary/90 h-10 w-10"
+            className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] h-10 w-10"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
