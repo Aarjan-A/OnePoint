@@ -67,23 +67,21 @@ export default function Dashboard() {
 
   const aiSuggestions = [
     {
-      priority: 'AI',
+      priority: 'EASY',
       title: 'Weekly Grocery',
       description: 'Plan your groceries for the week',
       category: 'Shopping',
-      reason: 'You have 7 easled e grocery need in 2 weeks and it\'s typically needed',
+      reason: 'You have completed this 7 times in the last 2 weeks',
     },
     {
-      priority: 'AI',
-      priorityLevel: 'MEDIUM',
+      priority: 'MEDIUM',
       title: 'Car Maintenance Check',
       description: 'Schedule a check-up for your car',
       category: 'Automotive',
       reason: 'Based on your mileage, a check-up is due',
     },
     {
-      priority: 'AI',
-      priorityLevel: 'HIGH',
+      priority: 'HARD',
       title: 'Renew Subscription',
       description: 'Your annual subscription expires soon.',
       category: 'Utilities',
@@ -176,12 +174,12 @@ export default function Dashboard() {
                 className="glass-card-hover rounded-2xl p-4 min-w-[140px] flex flex-col items-center gap-2"
               >
                 <div className={`w-12 h-12 rounded-full ${
-                  action.color === 'primary' ? 'bg-primary/20' : 
+                  action.color === 'primary' ? 'bg-[#7C3AED]/20' : 
                   action.color === 'accent' ? 'bg-accent/20' : 
                   'bg-destructive/20'
                 } flex items-center justify-center`}>
                   <action.icon className={`w-6 h-6 ${
-                    action.color === 'primary' ? 'text-primary' : 
+                    action.color === 'primary' ? 'text-[#7C3AED]' : 
                     action.color === 'accent' ? 'text-accent' : 
                     'text-destructive'
                   }`} />
@@ -204,23 +202,25 @@ export default function Dashboard() {
               <div key={index} className="glass-card rounded-2xl p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="px-2 py-1 rounded-lg bg-primary/20 border border-primary/30">
-                      <span className="text-xs font-bold text-primary flex items-center gap-1">
+                    <div className="px-2 py-1 rounded-lg bg-[#7C3AED]/20 border border-[#7C3AED]/30">
+                      <span className="text-xs font-bold text-[#7C3AED] flex items-center gap-1">
                         <Sparkles className="w-3 h-3" />
+                        AI
+                      </span>
+                    </div>
+                    <div className={`px-2 py-1 rounded-lg ${
+                      suggestion.priority === 'HARD' ? 'bg-destructive/20 border-destructive/30' : 
+                      suggestion.priority === 'MEDIUM' ? 'bg-accent/20 border-accent/30' : 
+                      'bg-green-500/20 border-green-500/30'
+                    }`}>
+                      <span className={`text-xs font-bold ${
+                        suggestion.priority === 'HARD' ? 'text-destructive' : 
+                        suggestion.priority === 'MEDIUM' ? 'text-accent' : 
+                        'text-green-500'
+                      }`}>
                         {suggestion.priority}
                       </span>
                     </div>
-                    {suggestion.priorityLevel && (
-                      <div className={`px-2 py-1 rounded-lg ${
-                        suggestion.priorityLevel === 'HIGH' ? 'bg-destructive/20 border-destructive/30' : 'bg-accent/20 border-accent/30'
-                      }`}>
-                        <span className={`text-xs font-bold ${
-                          suggestion.priorityLevel === 'HIGH' ? 'text-destructive' : 'text-accent'
-                        }`}>
-                          {suggestion.priorityLevel}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
                 
@@ -231,7 +231,7 @@ export default function Dashboard() {
                   <span className="text-xs text-muted-foreground">Category: {suggestion.category}</span>
                   <Button 
                     size="sm" 
-                    className="rounded-xl bg-primary hover:bg-primary/90 h-8"
+                    className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] h-8"
                     onClick={() => setCreateNeedOpen(true)}
                   >
                     Create Need
