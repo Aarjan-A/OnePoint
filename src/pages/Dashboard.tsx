@@ -92,7 +92,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen pb-24">
       <Navigation />
       
       <CreateNeedModal 
@@ -113,7 +113,7 @@ export default function Dashboard() {
         }}
       />
       
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-6 pb-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-4">
@@ -140,27 +140,27 @@ export default function Dashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="glass-card rounded-2xl p-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3">
+          <div className="glass-card-hover rounded-2xl p-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mx-auto mb-3">
               <CheckCircle className="w-6 h-6 text-primary" />
             </div>
-            <div className="text-3xl font-bold text-foreground mb-1">{stats.activeNeeds}</div>
+            <div className="text-3xl font-bold text-foreground glow-text mb-1">{stats.activeNeeds}</div>
             <div className="text-xs text-muted-foreground">Active Needs</div>
           </div>
           
-          <div className="glass-card rounded-2xl p-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-3">
+          <div className="glass-card-hover rounded-2xl p-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center mx-auto mb-3">
               <MapPin className="w-6 h-6 text-accent" />
             </div>
-            <div className="text-3xl font-bold text-foreground mb-1">{stats.nearbyProviders}</div>
+            <div className="text-3xl font-bold text-foreground glow-text mb-1">{stats.nearbyProviders}</div>
             <div className="text-xs text-muted-foreground">Nearby Providers</div>
           </div>
           
-          <div className="glass-card rounded-2xl p-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3">
+          <div className="glass-card-hover rounded-2xl p-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mx-auto mb-3">
               <Calendar className="w-6 h-6 text-primary" />
             </div>
-            <div className="text-3xl font-bold text-foreground mb-1">{stats.pendingTasks}</div>
+            <div className="text-3xl font-bold text-foreground glow-text mb-1">{stats.pendingTasks}</div>
             <div className="text-xs text-muted-foreground">Pending Tasks</div>
           </div>
         </div>
@@ -175,8 +175,16 @@ export default function Dashboard() {
                 onClick={action.onClick}
                 className="glass-card-hover rounded-2xl p-4 min-w-[140px] flex flex-col items-center gap-2"
               >
-                <div className={`w-12 h-12 rounded-full bg-${action.color}/20 flex items-center justify-center`}>
-                  <action.icon className={`w-6 h-6 text-${action.color}`} />
+                <div className={`w-12 h-12 rounded-full ${
+                  action.color === 'primary' ? 'bg-primary/20' : 
+                  action.color === 'accent' ? 'bg-accent/20' : 
+                  'bg-destructive/20'
+                } flex items-center justify-center`}>
+                  <action.icon className={`w-6 h-6 ${
+                    action.color === 'primary' ? 'text-primary' : 
+                    action.color === 'accent' ? 'text-accent' : 
+                    'text-destructive'
+                  }`} />
                 </div>
                 <span className="text-sm font-medium text-foreground text-center">{action.label}</span>
               </button>
