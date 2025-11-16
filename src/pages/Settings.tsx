@@ -1,13 +1,18 @@
 
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { User, Lock, Fingerprint, MapPin, Brain, MessageSquare, Snowflake, Bell, Megaphone, Briefcase, HelpCircle, Phone, PlayCircle, Info, Shield, FileText, LogOut, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { User, Lock, Fingerprint, MapPin, Brain, MessageSquare, Snowflake, Bell, Megaphone, Briefcase, HelpCircle, Phone, PlayCircle, Info, Shield, FileText, LogOut, Trash2, Camera } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 export default function Settings() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [locationSharing, setLocationSharing] = useState(true);
   const [aiDataUsage, setAiDataUsage] = useState(true);
   const [providerCommunication, setProviderCommunication] = useState(true);
@@ -16,6 +21,66 @@ export default function Settings() {
   const [providerMessages, setProviderMessages] = useState(true);
   const [aiSuggestions, setAiSuggestions] = useState(true);
   const [marketing, setMarketing] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (user) {
+      setUserEmail(user.email || '');
+      
+      // Fetch user profile
+      supabase
+        .from('users')
+        .select('full_name')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setUserName(data.full_name);
+          }
+        });
+
+      // Check biometric support
+      const biometricAvailable = localStorage.getItem('biometric_enabled') === 'true';
+      setBiometricEnabled(biometricAvailable);
+    }
+  }, [user]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setAvatarUrl(publicUrl);
+      toast.success('Profile photo updated!');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload photo');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const toggleBiometric = () => {
+    const newValue = !biometricEnabled;
+    setBiometricEnabled(newValue);
+    localStorage.setItem('biometric_enabled', newValue.toString());
+    toast.success(newValue ? 'Biometric authentication enabled' : 'Biometric authentication disabled');
+  };
 
   const handleSignOut = async () => {
     try {
@@ -39,14 +104,35 @@ export default function Settings() {
           
           <div className="glass-card rounded-2xl p-4 mb-3">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary-foreground">S</span>
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-bold text-white">
+                      {userName.charAt(0) || 'U'}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#7C3AED] flex items-center justify-center border-2 border-background hover:bg-[#6D28D9] transition-colors"
+                >
+                  <Camera className="w-3 h-3 text-white" />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
               </div>
               <div className="flex-1">
-                <h3 className="text-base font-semibold text-foreground">Sarah Johnson</h3>
-                <p className="text-sm text-muted-foreground">sarah.johnson@email.com</p>
+                <h3 className="text-base font-semibold text-foreground">{userName || 'User'}</h3>
+                <p className="text-sm text-muted-foreground">{userEmail}</p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-xl">Edit</Button>
             </div>
           </div>
 
@@ -66,16 +152,23 @@ export default function Settings() {
           <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
-                  <Fingerprint className="w-5 h-5 text-muted-foreground" />
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${biometricEnabled ? 'bg-[#7C3AED]/20' : 'bg-muted/50'}`}>
+                  <Fingerprint className={`w-5 h-5 ${biometricEnabled ? 'text-[#7C3AED]' : 'text-muted-foreground'}`} />
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-foreground">Biometric Authentication</h3>
                   <p className="text-sm text-muted-foreground">Use fingerprint or face ID to unlock</p>
                 </div>
               </div>
-              <button className="w-12 h-6 rounded-full bg-muted relative transition-colors">
-                <div className="w-5 h-5 rounded-full bg-muted-foreground absolute top-0.5 left-0.5 transition-transform" />
+              <button
+                onClick={toggleBiometric}
+                className={`w-12 h-6 rounded-full relative transition-colors ${
+                  biometricEnabled ? 'bg-[#7C3AED]' : 'bg-muted'
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${
+                  biometricEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
               </button>
             </div>
           </div>
@@ -329,7 +422,7 @@ export default function Settings() {
                   <p className="text-sm text-muted-foreground">Join our marketplace and start earning</p>
                 </div>
               </div>
-              <Button className="rounded-xl bg-primary hover:bg-primary/90">Join</Button>
+              <Button className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9]">Join</Button>
             </div>
           </div>
         </div>
