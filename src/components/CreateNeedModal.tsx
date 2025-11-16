@@ -235,7 +235,7 @@ export default function CreateNeedModal({ open, onOpenChange, onSuccess }: Creat
             </Button>
             <Button
               type="submit"
-              className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90"
+              className="flex-1 h-11 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9]"
               disabled={loading}
             >
               {loading ? (
