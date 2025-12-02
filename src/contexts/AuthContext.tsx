@@ -1,8 +1,14 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { blink, supabase } from '@/lib/supabase';
 import { initializeStorageBuckets } from '@/lib/initStorage';
+
+interface User {
+  id: string;
+  email?: string;
+  displayName?: string;
+  metadata?: any;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -19,62 +25,84 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+    // Use Blink SDK for auth state management
+    const unsubscribe = blink.auth.onAuthStateChanged((state) => {
+      setUser(state.user);
+      setLoading(state.isLoading);
       
-      // Initialize storage buckets on session load
-      if (session?.user) {
-        initializeStorageBuckets();
+      // Initialize storage buckets when user logs in
+      if (state.user) {
+        initializeStorageBuckets().catch(console.error);
       }
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      
-      // Initialize storage buckets on auth
-      if (session?.user) {
-        initializeStorageBuckets();
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return unsubscribe;
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    try {
+      await blink.auth.signInWithEmail(email, password);
+      
+      // Also sync with Supabase for backwards compatibility
+      try {
+        await supabase.auth.signInWithPassword({ email, password });
+      } catch (supabaseError) {
+        console.warn('Supabase sync failed (non-critical):', supabaseError);
+      }
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to sign in. Please check your credentials.');
+    }
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
-    if (error) throw error;
-    
-    // Create user profile
-    if (data.user) {
-      await supabase.from('users').insert({
-        id: data.user.id,
+    try {
+      await blink.auth.signUp({
         email,
-        full_name: fullName,
-        wallet_balance: 0,
-        kyc_status: 'pending',
+        password,
+        displayName: fullName,
+        metadata: { fullName }
       });
+      
+      // Also create in Supabase for backwards compatibility
+      try {
+        const { data } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName },
+          },
+        });
+        
+        if (data.user) {
+          await supabase.from('users').insert({
+            id: data.user.id,
+            email,
+            full_name: fullName,
+            wallet_balance: 0,
+            kyc_status: 'pending',
+          });
+        }
+      } catch (supabaseError) {
+        console.warn('Supabase sync failed (non-critical):', supabaseError);
+      }
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to create account. Please try again.');
     }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      await blink.auth.logout();
+      
+      // Also sign out from Supabase
+      try {
+        await supabase.auth.signOut();
+      } catch (supabaseError) {
+        console.warn('Supabase signout failed (non-critical):', supabaseError);
+      }
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to sign out');
+    }
   };
 
   return (
