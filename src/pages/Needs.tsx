@@ -6,6 +6,7 @@ import Navigation from '@/components/Navigation';
 import CreateNeedModal from '@/components/CreateNeedModal';
 import { Plus, Clock, CheckCircle, XCircle, Loader2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { demoNeeds, DemoNeed } from '@/data/demoNeeds';
 
 interface Need {
   id: string;
@@ -21,7 +22,7 @@ interface Need {
 
 export default function Needs() {
   const { user } = useAuth();
-  const [needs, setNeeds] = useState<Need[]>([]);
+  const [needs, setNeeds] = useState<(Need | DemoNeed)[]>([]);
   const [loading, setLoading] = useState(true);
   const [createNeedOpen, setCreateNeedOpen] = useState(false);
 
@@ -37,9 +38,15 @@ export default function Needs() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNeeds(data || []);
+      
+      // Combine user needs with demo data
+      const userNeeds = data || [];
+      const allNeeds = userNeeds.length > 0 ? userNeeds : demoNeeds;
+      setNeeds(allNeeds);
     } catch (error) {
       console.error('Error fetching needs:', error);
+      // Fallback to demo data on error
+      setNeeds(demoNeeds);
     } finally {
       setLoading(false);
     }
@@ -91,8 +98,9 @@ export default function Needs() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">My Needs</h1>
           <Button 
-            className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9]"
+            className="rounded-xl bg-primary hover:bg-primary/90"
             onClick={() => setCreateNeedOpen(true)}
+            data-testid="add-need-btn"
           >
             <Plus className="w-5 h-5 mr-2" />
             Add Need
@@ -108,7 +116,7 @@ export default function Needs() {
           <div className="glass-card rounded-2xl p-8 text-center">
             <p className="text-muted-foreground mb-4">You haven't created any needs yet</p>
             <Button 
-              className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9]"
+              className="rounded-xl bg-primary hover:bg-primary/90"
               onClick={() => setCreateNeedOpen(true)}
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -118,7 +126,7 @@ export default function Needs() {
         ) : (
           <div className="space-y-3">
             {needs.map((need) => (
-              <div key={need.id} className="glass-card rounded-2xl p-4">
+              <div key={need.id} className="glass-card rounded-2xl p-4" data-testid={`need-card-${need.id}`}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-foreground mb-1">{need.title}</h3>
@@ -145,7 +153,7 @@ export default function Needs() {
                   </div>
                 )}
 
-                {need.photos.length > 0 && (
+                {need.photos && need.photos.length > 0 && (
                   <div className="flex gap-2 mb-3 overflow-x-auto">
                     {need.photos.slice(0, 3).map((photo, index) => (
                       <img
@@ -153,6 +161,9 @@ export default function Needs() {
                         src={photo}
                         alt={`Need photo ${index + 1}`}
                         className="w-20 h-20 rounded-lg object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1516542076529-1ea3854896f2?w=400';
+                        }}
                       />
                     ))}
                     {need.photos.length > 3 && (
