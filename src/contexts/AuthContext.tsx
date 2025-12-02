@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { initializeStorageBuckets } from '@/lib/initStorage';
 
 interface AuthContextType {
   user: User | null;
@@ -22,11 +23,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Initialize storage buckets on session load
+      if (session?.user) {
+        initializeStorageBuckets();
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      
+      // Initialize storage buckets on auth
+      if (session?.user) {
+        initializeStorageBuckets();
+      }
     });
 
     return () => subscription.unsubscribe();
