@@ -4,6 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import Navigation from '@/components/Navigation';
 import CreateNeedModal from '@/components/CreateNeedModal';
+import VoiceAssistant from '@/components/VoiceAssistant';
+import QuickSearch from '@/components/QuickSearch';
+import RecentActivity from '@/components/RecentActivity';
+import BudgetTracker from '@/components/BudgetTracker';
+import WeatherWidget from '@/components/WeatherWidget';
 import { Plus, Search, Mic, AlertCircle, CheckCircle, MapPin, Calendar, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -26,14 +31,7 @@ export default function Dashboard() {
 
     // Fetch user profile and stats
     if (user) {
-      supabase
-        .from('users')
-        .select('full_name')
-        .eq('id', user.id)
-        .single()
-        .then(({ data }) => {
-          if (data) setUserName(data.full_name);
-        });
+      setUserName(user.displayName || user.metadata?.fullName || 'User');
 
       // Fetch needs count
       supabase
@@ -90,6 +88,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen pb-24" data-testid="dashboard">
       <Navigation />
+      <VoiceAssistant />
       
       <CreateNeedModal 
         open={createNeedOpen} 
@@ -125,6 +124,11 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Weather Widget */}
+        <div className="mb-6">
+          <WeatherWidget />
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="glass-card-hover rounded-2xl p-4 text-center" data-testid="active-needs-card">
@@ -150,6 +154,11 @@ export default function Dashboard() {
             <div className="text-3xl font-bold text-foreground mb-1">{stats.pendingTasks}</div>
             <div className="text-xs text-muted-foreground">Pending Tasks</div>
           </div>
+        </div>
+
+        {/* Quick Search */}
+        <div className="mb-6">
+          <QuickSearch />
         </div>
 
         {/* Quick Actions */}
@@ -178,6 +187,16 @@ export default function Dashboard() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="mb-6">
+          <RecentActivity />
+        </div>
+
+        {/* Budget Tracker */}
+        <div className="mb-6">
+          <BudgetTracker />
         </div>
 
         {/* AI Suggestions */}
