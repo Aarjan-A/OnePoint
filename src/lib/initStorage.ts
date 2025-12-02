@@ -1,4 +1,4 @@
-"import { supabase } from './supabase';
+import { supabase } from './supabase';
 
 export async function initializeStorageBuckets() {
   try {
@@ -44,4 +44,3 @@ export async function initializeStorageBuckets() {
     console.error('Error initializing storage buckets:', error);
   }
 }
-"
