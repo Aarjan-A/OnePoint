@@ -53,6 +53,18 @@ export default function Settings() {
 
     setUploading(true);
     try {
+      // Create bucket if it doesn't exist
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const avatarBucket = buckets?.find(b => b.name === 'avatars');
+      
+      if (!avatarBucket) {
+        await supabase.storage.createBucket('avatars', {
+          public: true,
+          fileSizeLimit: 5242880, // 5MB
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
+        });
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
       
@@ -70,6 +82,7 @@ export default function Settings() {
       toast.success('Profile photo updated!');
     } catch (error: any) {
       toast.error(error.message || 'Failed to upload photo');
+      console.error('Avatar upload error:', error);
     } finally {
       setUploading(false);
     }
@@ -105,7 +118,7 @@ export default function Settings() {
           <div className="glass-card rounded-2xl p-4 mb-3">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center overflow-hidden">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center overflow-hidden">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
@@ -117,7 +130,8 @@ export default function Settings() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#7C3AED] flex items-center justify-center border-2 border-background hover:bg-[#6D28D9] transition-colors"
+                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center border-2 border-background hover:bg-primary/90 transition-colors"
+                  data-testid="change-avatar-btn"
                 >
                   <Camera className="w-3 h-3 text-white" />
                 </button>
@@ -152,8 +166,8 @@ export default function Settings() {
           <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${biometricEnabled ? 'bg-[#7C3AED]/20' : 'bg-muted/50'}`}>
-                  <Fingerprint className={`w-5 h-5 ${biometricEnabled ? 'text-[#7C3AED]' : 'text-muted-foreground'}`} />
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${biometricEnabled ? 'bg-primary/20' : 'bg-muted/50'}`}>
+                  <Fingerprint className={`w-5 h-5 ${biometricEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-foreground">Biometric Authentication</h3>
@@ -163,8 +177,9 @@ export default function Settings() {
               <button
                 onClick={toggleBiometric}
                 className={`w-12 h-6 rounded-full relative transition-colors ${
-                  biometricEnabled ? 'bg-[#7C3AED]' : 'bg-muted'
+                  biometricEnabled ? 'bg-primary' : 'bg-muted'
                 }`}
+                data-testid="biometric-toggle"
               >
                 <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${
                   biometricEnabled ? 'translate-x-6' : 'translate-x-0.5'
@@ -422,7 +437,7 @@ export default function Settings() {
                   <p className="text-sm text-muted-foreground">Join our marketplace and start earning</p>
                 </div>
               </div>
-              <Button className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9]">Join</Button>
+              <Button className="rounded-xl bg-primary hover:bg-primary/90">Join</Button>
             </div>
           </div>
         </div>
