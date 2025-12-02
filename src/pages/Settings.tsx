@@ -28,18 +28,7 @@ export default function Settings() {
   useEffect(() => {
     if (user) {
       setUserEmail(user.email || '');
-      
-      // Fetch user profile
-      supabase
-        .from('users')
-        .select('full_name')
-        .eq('id', user.id)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            setUserName(data.full_name);
-          }
-        });
+      setUserName(user.displayName || user.metadata?.fullName || 'User');
 
       // Check biometric support
       const biometricAvailable = localStorage.getItem('biometric_enabled') === 'true';
