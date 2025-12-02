@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Sparkles, CheckCircle, Zap, Shield, Brain } from 'lucide-react';
+import { Brain, Zap, Shield, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ModernLogo from './ModernLogo';
 
 export default function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const [currentFeature, setCurrentFeature] = useState(0);
@@ -32,7 +33,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
   useEffect(() => {
     const timer = setTimeout(() => {
       setCanContinue(true);
-    }, 2000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -49,24 +50,24 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
   const Icon = currentFeatureData.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-gradient-to-br from-black via-[#0a0e1a] to-black p-6">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-black p-6">
       {/* Logo and Brand */}
       <div className="flex-1 flex flex-col items-center justify-center max-w-md w-full">
-        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center mb-6">
-          <Sparkles className="w-12 h-12 text-white" />
+        <div className="mb-8">
+          <ModernLogo size={96} animated />
         </div>
         
-        <h1 className="text-4xl font-bold text-white mb-2 text-center">
-          OnePoint ALO
+        <h1 className="text-5xl font-bold text-white mb-2 text-center">
+          OnePoint
         </h1>
-        <p className="text-muted-foreground text-center mb-12">
+        <p className="text-lg text-gray-400 text-center mb-12">
           Autonomous Life Operating System
         </p>
 
         {/* Feature Display */}
         <div className="glass-card rounded-3xl p-8 w-full mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="w-16 h-16 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center mb-6 mx-auto">
-            <Icon className="w-8 h-8 text-[#7C3AED]" />
+          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-6 mx-auto">
+            <Icon className="w-8 h-8 text-primary" />
           </div>
           
           <h2 className="text-2xl font-bold text-foreground mb-3 text-center">
@@ -84,9 +85,9 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
               key={index}
               className={`h-2 rounded-full transition-all duration-300 ${
                 index === currentFeature 
-                  ? 'w-8 bg-[#7C3AED]' 
+                  ? 'w-8 bg-primary' 
                   : index < currentFeature 
-                  ? 'w-2 bg-[#7C3AED]/50' 
+                  ? 'w-2 bg-primary/50' 
                   : 'w-2 bg-muted/30'
               }`}
             />
@@ -99,7 +100,8 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
         <Button
           onClick={handleNext}
           disabled={!canContinue}
-          className="w-full h-14 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-lg"
+          className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-semibold text-lg"
+          data-testid="splash-next-btn"
         >
           {currentFeature < features.length - 1 ? 'Next' : 'Get Started'}
         </Button>
@@ -109,6 +111,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
             variant="ghost"
             onClick={onComplete}
             className="w-full text-muted-foreground hover:text-foreground"
+            data-testid="splash-skip-btn"
           >
             Skip
           </Button>
