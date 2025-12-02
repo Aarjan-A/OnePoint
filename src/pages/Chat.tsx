@@ -115,6 +115,7 @@ export default function Chat() {
             <div
               key={index}
               className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+              data-testid={`chat-message-${index}`}
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                 message.role === 'user' 
@@ -122,7 +123,7 @@ export default function Chat() {
                   : 'bg-accent/20'
               }`}>
                 {message.role === 'user' ? (
-                  <User className="w-5 h-5 text-primary-foreground" />
+                  <User className="w-5 h-5 text-white" />
                 ) : (
                   <Bot className="w-5 h-5 text-accent" />
                 )}
@@ -163,13 +164,15 @@ export default function Chat() {
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
             disabled={loading}
-            className="flex-1 bg-background/50 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-10"
+            className="flex-1 bg-background/50 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-10 text-white"
+            data-testid="chat-input"
           />
           <Button
             onClick={sendMessage}
             disabled={loading || !input.trim()}
             size="icon"
-            className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] h-10 w-10"
+            className="rounded-xl bg-primary hover:bg-primary/90 h-10 w-10"
+            data-testid="chat-send-btn"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
