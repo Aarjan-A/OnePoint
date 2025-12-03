@@ -30,9 +30,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(state.user);
       setLoading(state.isLoading);
       
-      // Initialize storage buckets when user logs in
+      // Initialize storage buckets when user logs in (non-blocking)
       if (state.user) {
-        initializeStorageBuckets().catch(console.error);
+        // Fire and forget - don't wait for storage initialization
+        initializeStorageBuckets().catch((error) => {
+          console.warn('Storage initialization failed (non-critical):', error);
+        });
       }
     });
 
@@ -41,14 +44,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      await blink.auth.signInWithEmail(email, password);
+      // Primary auth via Blink SDK
+      const result = await blink.auth.signInWithEmail(email, password);
       
-      // Also sync with Supabase for backwards compatibility
-      try {
-        await supabase.auth.signInWithPassword({ email, password });
-      } catch (supabaseError) {
-        console.warn('Supabase sync failed (non-critical):', supabaseError);
+      if (!result || result.error) {
+        throw new Error(result?.error?.message || 'Failed to sign in. Please check your credentials.');
       }
+      
+      // Optional Supabase sync (fire-and-forget, doesn't block)
+      setTimeout(() => {
+        supabase.auth.signInWithPassword({ email, password }).catch((supabaseError) => {
+          console.warn('Supabase sync failed (non-critical):', supabaseError);
+        });
+      }, 0);
+      
+      return result;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to sign in. Please check your credentials.');
     }
@@ -56,35 +66,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      await blink.auth.signUp({
+      // Primary auth via Blink SDK
+      const result = await blink.auth.signUp({
         email,
         password,
         displayName: fullName,
         metadata: { fullName }
       });
       
-      // Also create in Supabase for backwards compatibility
-      try {
-        const { data } = await supabase.auth.signUp({
+      if (!result || result.error) {
+        throw new Error(result?.error?.message || 'Failed to create account. Please try again.');
+      }
+      
+      // Optional Supabase sync (fire-and-forget, doesn't block)
+      setTimeout(() => {
+        supabase.auth.signUp({
           email,
           password,
           options: {
             data: { full_name: fullName },
           },
+        }).then(({ data }) => {
+          if (data.user) {
+            supabase.from('users').insert({
+              id: data.user.id,
+              email,
+              full_name: fullName,
+              wallet_balance: 0,
+              kyc_status: 'pending',
+            }).catch((insertError) => {
+              console.warn('Could not insert user in Supabase (non-critical):', insertError);
+            });
+          }
+        }).catch((supabaseError) => {
+          console.warn('Supabase sync failed (non-critical):', supabaseError);
         });
-        
-        if (data.user) {
-          await supabase.from('users').insert({
-            id: data.user.id,
-            email,
-            full_name: fullName,
-            wallet_balance: 0,
-            kyc_status: 'pending',
-          });
-        }
-      } catch (supabaseError) {
-        console.warn('Supabase sync failed (non-critical):', supabaseError);
-      }
+      }, 0);
+      
+      return result;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to create account. Please try again.');
     }
