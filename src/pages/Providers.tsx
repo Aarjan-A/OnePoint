@@ -72,18 +72,30 @@ export default function Providers() {
   const fetchProviders = async () => {
     setLoading(true);
     try {
+      // Use a timeout to prevent hanging requests
+      const timeoutId = setTimeout(() => {
+        console.warn('Providers fetch timeout, using demo data');
+        setProviders(DEMO_PROVIDERS);
+        setLoading(false);
+      }, 8000);
+
       const { data, error } = await supabase
         .from('providers')
         .select('*')
         .order('rating', { ascending: false })
         .limit(20);
 
-      if (error) throw error;
+      clearTimeout(timeoutId);
+
+      if (error) {
+        console.warn('Supabase error (falling back to demo):', error);
+        throw error;
+      }
       // Use demo data if no providers in database
       setProviders(data && data.length > 0 ? data : DEMO_PROVIDERS);
     } catch (error) {
-      console.error('Error fetching providers:', error);
-      // Fallback to demo data on error
+      console.warn('Error fetching providers (using demo data):', error);
+      // Fallback to demo data on error - this is non-critical
       setProviders(DEMO_PROVIDERS);
     } finally {
       setLoading(false);
