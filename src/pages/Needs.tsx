@@ -27,25 +27,39 @@ export default function Needs() {
   const [createNeedOpen, setCreateNeedOpen] = useState(false);
 
   const fetchNeeds = async () => {
-    if (!user) return;
+    if (!user) {
+      // Not logged in, show demo data
+      setNeeds(demoNeeds);
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     try {
+      // Use a timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       const { data, error } = await supabase
         .from('needs')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      clearTimeout(timeoutId);
+
+      if (error) {
+        console.warn('Supabase error (falling back to demo):', error);
+        throw error;
+      }
       
       // Combine user needs with demo data
       const userNeeds = data || [];
       const allNeeds = userNeeds.length > 0 ? userNeeds : demoNeeds;
       setNeeds(allNeeds);
     } catch (error) {
-      console.error('Error fetching needs:', error);
-      // Fallback to demo data on error
+      console.warn('Error fetching needs (using demo data):', error);
+      // Fallback to demo data on error - this is non-critical
       setNeeds(demoNeeds);
     } finally {
       setLoading(false);
