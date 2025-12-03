@@ -139,7 +139,11 @@ export default function Settings() {
             </div>
           </div>
 
-          <button className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3">
+          <button 
+            onClick={() => toast.info('Password change coming soon!')}
+            className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3"
+            data-testid="change-password-btn"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
                 <Lock className="w-5 h-5 text-muted-foreground" />
@@ -283,7 +287,11 @@ export default function Settings() {
         <div className="mb-6">
           <h2 className="text-sm font-bold text-primary mb-3 uppercase tracking-wider">PREFERENCES</h2>
           
-          <button className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3">
+          <button 
+            onClick={() => toast.info('Theme settings coming soon!')}
+            className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3"
+            data-testid="theme-settings-btn"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
                 <User className="w-5 h-5 text-muted-foreground" />
@@ -296,7 +304,11 @@ export default function Settings() {
             <span className="text-muted-foreground">›</span>
           </button>
 
-          <button className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between">
+          <button 
+            onClick={() => toast.info('Location settings coming soon!')}
+            className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between"
+            data-testid="location-settings-btn"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
                 <MapPin className="w-5 h-5 text-muted-foreground" />
@@ -435,7 +447,11 @@ export default function Settings() {
         <div className="mb-6">
           <h2 className="text-sm font-bold text-primary mb-3 uppercase tracking-wider">SUPPORT</h2>
           
-          <button className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3">
+          <button 
+            onClick={() => toast.info('Help & FAQ will be available soon!')}
+            className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3"
+            data-testid="help-faq-btn"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
                 <HelpCircle className="w-5 h-5 text-muted-foreground" />
@@ -448,7 +464,11 @@ export default function Settings() {
             <span className="text-muted-foreground">›</span>
           </button>
 
-          <button className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3">
+          <button 
+            onClick={() => toast.info('Contact support at support@onepoint.com')}
+            className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3"
+            data-testid="contact-support-btn"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
                 <Phone className="w-5 h-5 text-muted-foreground" />
@@ -461,7 +481,14 @@ export default function Settings() {
             <span className="text-muted-foreground">›</span>
           </button>
 
-          <button className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between">
+          <button 
+            onClick={() => {
+              localStorage.removeItem('splash_completed');
+              toast.success('Restart the app to see the tutorial');
+            }}
+            className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between"
+            data-testid="tutorial-replay-btn"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
                 <PlayCircle className="w-5 h-5 text-muted-foreground" />
@@ -491,7 +518,11 @@ export default function Settings() {
             </div>
           </div>
 
-          <button className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3">
+          <button 
+            onClick={() => toast.info('Privacy policy will be available soon')}
+            className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3"
+            data-testid="privacy-policy-btn"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
                 <Shield className="w-5 h-5 text-muted-foreground" />
@@ -504,7 +535,11 @@ export default function Settings() {
             <span className="text-muted-foreground">›</span>
           </button>
 
-          <button className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between">
+          <button 
+            onClick={() => toast.info('Terms of service will be available soon')}
+            className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between"
+            data-testid="terms-service-btn"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
                 <FileText className="w-5 h-5 text-muted-foreground" />
@@ -538,7 +573,15 @@ export default function Settings() {
             <span className="text-destructive">›</span>
           </button>
 
-          <button className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between border-destructive/30">
+          <button 
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                toast.error('Account deletion feature coming soon. Please contact support.');
+              }
+            }}
+            className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between border-destructive/30"
+            data-testid="delete-account-btn"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
                 <Trash2 className="w-5 h-5 text-destructive" />
