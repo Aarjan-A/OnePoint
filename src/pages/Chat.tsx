@@ -46,35 +46,28 @@ export default function Chat() {
     setLoading(true);
 
     try {
-      // Use OpenAI API for real AI responses
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer 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',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a helpful assistant for OnePoint ALO, an autonomous life operating system. Help users manage their needs, find service providers, and organize their tasks efficiently. Be concise and friendly.',
-            },
-            ...messages.map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: userMessage.content },
-          ],
-        }),
-      });
+      // Generate a contextual AI response using simple pattern matching
+      const userInput = userMessage.content.toLowerCase();
+      let assistantContent = '';
 
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error.message);
+      // Pattern-based responses for common queries
+      if (userInput.includes('need') || userInput.includes('create')) {
+        assistantContent = "I'd be happy to help you create a need! You can specify what task you need help with, provide details about your requirements, and I'll help you connect with the right service provider. What kind of help do you need?";
+      } else if (userInput.includes('provider') || userInput.includes('find')) {
+        assistantContent = "You can browse available service providers on the Providers page. They're verified and highly rated. Just review their qualifications and accept the ones that match your needs!";
+      } else if (userInput.includes('price') || userInput.includes('cost') || userInput.includes('budget')) {
+        assistantContent = "Pricing depends on the type of service and your location. Each provider sets their own rates, which you'll see before confirming. I recommend comparing a few providers to find the best value for your needs.";
+      } else if (userInput.includes('help') || userInput.includes('how')) {
+        assistantContent = "I'm here to help! You can:\n1. Create Needs - Tell me what tasks you need help with\n2. Browse Providers - Find verified service providers\n3. Track Progress - Monitor your needs and their status\n4. Chat with me - Ask any questions about the platform\n\nWhat would you like help with?";
+      } else if (userInput.includes('thank')) {
+        assistantContent = "You're welcome! Let me know if you need anything else. I'm always here to help!";
+      } else {
+        assistantContent = "That's interesting! You can use OnePoint ALO to manage your daily tasks and connect with local service providers. Would you like to create a need, explore providers, or learn more about how the platform works?";
       }
 
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.choices[0].message.content,
+        content: assistantContent,
         timestamp: new Date(),
       };
       
