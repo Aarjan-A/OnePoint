@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
 import CreateNeedModal from '@/components/CreateNeedModal';
 import VoiceAssistant from '@/components/VoiceAssistant';
@@ -14,6 +16,7 @@ import { Button } from '@/components/ui/button';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [greeting, setGreeting] = useState('');
   const [userName, setUserName] = useState('');
   const [createNeedOpen, setCreateNeedOpen] = useState(false);
@@ -56,9 +59,9 @@ export default function Dashboard() {
 
   const quickActions = [
     { icon: Plus, label: 'Create Need', color: 'primary', onClick: () => setCreateNeedOpen(true) },
-    { icon: Search, label: 'Find Providers', color: 'accent', onClick: () => {} },
-    { icon: Mic, label: 'Voice Assistant', color: 'accent', onClick: () => {} },
-    { icon: AlertCircle, label: 'Emergency Mode', color: 'destructive', onClick: () => {} },
+    { icon: Search, label: 'Find Providers', color: 'accent', onClick: () => navigate('/providers') },
+    { icon: Mic, label: 'Voice Assistant', color: 'accent', onClick: () => navigate('/chat') },
+    { icon: AlertCircle, label: 'Emergency Mode', color: 'destructive', onClick: () => toast.info('Emergency mode coming soon!') },
   ];
 
   const aiSuggestions = [
