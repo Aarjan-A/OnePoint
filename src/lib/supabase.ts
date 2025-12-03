@@ -4,7 +4,7 @@ import { createClient } from '@blinkdotnew/sdk';
 
 // Blink SDK client for authentication (more reliable, no CORS issues)
 export const blink = createClient({
-  projectId: 'onepoint-alo-autonomous-life-os-4pkjp6uu',
+  projectId: 'onepoint-alo-autonomous-life-os-6jt5y3yx',
   authRequired: false,
   auth: { mode: 'headless' }
 });
