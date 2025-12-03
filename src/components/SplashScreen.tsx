@@ -110,7 +110,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
           <Button
             variant="ghost"
             onClick={onComplete}
-            className="w-full text-muted-foreground hover:text-foreground"
+            className="w-full text-muted-foreground hover:text-foreground hover:bg-muted/20"
             data-testid="splash-skip-btn"
           >
             Skip
