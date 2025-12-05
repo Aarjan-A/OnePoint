@@ -25,40 +25,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Use Blink SDK for auth state management
-    const unsubscribe = blink.auth.onAuthStateChanged((state) => {
-      setUser(state.user);
-      setLoading(state.isLoading);
-      
-      // Initialize storage buckets when user logs in (non-blocking)
-      if (state.user) {
-        // Fire and forget - don't wait for storage initialization
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          displayName: session.user.user_metadata?.full_name || session.user.user_metadata?.fullName,
+          metadata: session.user.user_metadata
+        });
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          displayName: session.user.user_metadata?.full_name || session.user.user_metadata?.fullName,
+          metadata: session.user.user_metadata
+        });
+        
+        // Initialize storage buckets when user logs in (non-blocking)
         initializeStorageBuckets().catch((error) => {
           console.warn('Storage initialization failed (non-critical):', error);
         });
+      } else {
+        setUser(null);
       }
+      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Primary auth via Blink SDK
-      const result = await blink.auth.signInWithEmail(email, password);
+      // Try Supabase first as it's configured
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
-      if (!result || result.error) {
-        throw new Error(result?.error?.message || 'Failed to sign in. Please check your credentials.');
+      if (error) {
+        throw new Error(error.message || 'Failed to sign in. Please check your credentials.');
       }
       
-      // Optional Supabase sync (fire-and-forget, doesn't block)
-      setTimeout(() => {
-        supabase.auth.signInWithPassword({ email, password }).catch((supabaseError) => {
-          console.warn('Supabase sync failed (non-critical):', supabaseError);
+      // Update user state
+      if (data.user) {
+        setUser({
+          id: data.user.id,
+          email: data.user.email,
+          displayName: data.user.user_metadata?.full_name || data.user.user_metadata?.fullName,
+          metadata: data.user.user_metadata
         });
-      }, 0);
+      }
       
-      return result;
+      return data;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to sign in. Please check your credentials.');
     }
@@ -66,44 +90,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      // Primary auth via Blink SDK
-      const result = await blink.auth.signUp({
+      // Use Supabase for signup
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        displayName: fullName,
-        metadata: { fullName }
+        options: {
+          data: { 
+            full_name: fullName,
+            fullName: fullName
+          },
+        },
       });
       
-      if (!result || result.error) {
-        throw new Error(result?.error?.message || 'Failed to create account. Please try again.');
+      if (error) {
+        throw new Error(error.message || 'Failed to create account. Please try again.');
       }
       
-      // Optional Supabase sync (fire-and-forget, doesn't block)
-      setTimeout(() => {
-        supabase.auth.signUp({
+      // Insert user profile
+      if (data.user) {
+        await supabase.from('users').insert({
+          id: data.user.id,
           email,
-          password,
-          options: {
-            data: { full_name: fullName },
-          },
-        }).then(({ data }) => {
-          if (data.user) {
-            supabase.from('users').insert({
-              id: data.user.id,
-              email,
-              full_name: fullName,
-              wallet_balance: 0,
-              kyc_status: 'pending',
-            }).catch((insertError) => {
-              console.warn('Could not insert user in Supabase (non-critical):', insertError);
-            });
-          }
-        }).catch((supabaseError) => {
-          console.warn('Supabase sync failed (non-critical):', supabaseError);
+          full_name: fullName,
+          wallet_balance: 0,
+          kyc_status: 'pending',
+        }).catch((insertError) => {
+          console.warn('Could not insert user profile:', insertError);
         });
-      }, 0);
+        
+        // Update user state
+        setUser({
+          id: data.user.id,
+          email: data.user.email,
+          displayName: fullName,
+          metadata: { fullName }
+        });
+      }
       
-      return result;
+      return data;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to create account. Please try again.');
     }
@@ -111,14 +135,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      await blink.auth.logout();
-      
-      // Also sign out from Supabase
-      try {
-        await supabase.auth.signOut();
-      } catch (supabaseError) {
-        console.warn('Supabase signout failed (non-critical):', supabaseError);
-      }
+      await supabase.auth.signOut();
+      setUser(null);
     } catch (error: any) {
       throw new Error(error.message || 'Failed to sign out');
     }
