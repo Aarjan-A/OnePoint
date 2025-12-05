@@ -188,33 +188,27 @@ export default function Providers() {
                     <span>Available in your area</span>
                   </div>
 
-                  {!isAccepted ? (
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button 
-                        variant="outline"
-                        className="rounded-xl border-destructive/50 text-destructive hover:bg-destructive/10"
-                        onClick={() => handleReject(provider.business_name)}
-                        data-testid={`reject-btn-${provider.id}`}
-                      >
-                        <X className="w-4 h-4 mr-2" />
-                        Reject
-                      </Button>
-                      <Button 
-                        className="rounded-xl bg-primary hover:bg-primary/90"
-                        onClick={() => handleAccept(provider.id, provider.business_name)}
-                        data-testid={`accept-btn-${provider.id}`}
-                      >
+                  <Button 
+                    className={`w-full rounded-xl transition-all ${
+                      isAccepted 
+                        ? 'bg-green-500/20 hover:bg-green-500/30 text-green-500' 
+                        : 'bg-primary hover:bg-primary/90'
+                    }`}
+                    onClick={() => handleAccept(provider.id, provider.business_name)}
+                    data-testid={`view-provider-btn-${provider.id}`}
+                  >
+                    {isAccepted ? (
+                      <>
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Accept
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="glass-card rounded-xl p-3 bg-green-500/10 border border-green-500/30">
-                      <p className="text-sm text-green-500 font-semibold text-center">
-                        Provider Accepted! They can now view your needs.
-                      </p>
-                    </div>
-                  )}
+                        Connected
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Connect Provider
+                      </>
+                    )}
+                  </Button>
                 </div>
               );
             })}
