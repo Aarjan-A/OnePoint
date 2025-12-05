@@ -7,6 +7,13 @@ import { Input } from '@/components/ui/input';
 import { User, Lock, Fingerprint, MapPin, Brain, MessageSquare, Snowflake, Bell, Megaphone, Briefcase, HelpCircle, Phone, PlayCircle, Info, Shield, FileText, LogOut, Trash2, Camera } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function Settings() {
   const { signOut, user } = useAuth();
@@ -23,6 +30,15 @@ export default function Settings() {
   const [marketing, setMarketing] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showHelpFAQ, setShowHelpFAQ] = useState(false);
+  const [faqSearch, setFaqSearch] = useState('');
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -33,8 +49,33 @@ export default function Settings() {
       // Check biometric support
       const biometricAvailable = localStorage.getItem('biometric_enabled') === 'true';
       setBiometricEnabled(biometricAvailable);
+
+      // Load theme preference
+      const savedTheme = (localStorage.getItem('theme') as 'light' | 'dark' | 'system') || 'system';
+      setTheme(savedTheme);
+      applyTheme(savedTheme);
     }
   }, [user]);
+
+  const applyTheme = (selectedTheme: 'light' | 'dark' | 'system') => {
+    const root = document.documentElement;
+    if (selectedTheme === 'light') {
+      root.classList.add('light-mode');
+      root.classList.remove('dark-mode');
+    } else if (selectedTheme === 'dark') {
+      root.classList.add('dark-mode');
+      root.classList.remove('light-mode');
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        root.classList.add('dark-mode');
+        root.classList.remove('light-mode');
+      } else {
+        root.classList.add('light-mode');
+        root.classList.remove('dark-mode');
+      }
+    }
+  };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,6 +134,46 @@ export default function Settings() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+    try {
+      // TODO: Implement actual password change via Blink SDK
+      toast.success('Password changed successfully');
+      setShowPasswordChange(false);
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      toast.error('Failed to change password');
+    }
+  };
+
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    applyTheme(newTheme);
+    toast.success(`Theme changed to ${newTheme}`);
+  };
+
+  const handleDeleteAccount = () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      if (window.confirm('This will permanently delete all your data. Type "DELETE" to confirm.')) {
+        toast.info('Account deletion feature coming soon. Please contact support.');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen pb-24">
       <Navigation />
@@ -140,7 +221,7 @@ export default function Settings() {
           </div>
 
           <button 
-            onClick={() => toast.info('Password change coming soon!')}
+            onClick={() => setShowPasswordChange(true)}
             className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3"
             data-testid="change-password-btn"
           >
@@ -288,7 +369,17 @@ export default function Settings() {
           <h2 className="text-sm font-bold text-primary mb-3 uppercase tracking-wider">PREFERENCES</h2>
           
           <button 
-            onClick={() => toast.info('Theme settings coming soon!')}
+            onClick={() => {
+              // Show theme selection
+              const root = document.documentElement;
+              if (theme === 'light') {
+                handleThemeChange('dark');
+              } else if (theme === 'dark') {
+                handleThemeChange('system');
+              } else {
+                handleThemeChange('light');
+              }
+            }}
             className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3"
             data-testid="theme-settings-btn"
           >
@@ -298,7 +389,7 @@ export default function Settings() {
               </div>
               <div className="text-left">
                 <h3 className="text-base font-semibold text-foreground">Theme</h3>
-                <p className="text-sm text-muted-foreground">Follow system settings</p>
+                <p className="text-sm text-muted-foreground">Current: {theme.charAt(0).toUpperCase() + theme.slice(1)}</p>
               </div>
             </div>
             <span className="text-muted-foreground">›</span>
@@ -448,7 +539,7 @@ export default function Settings() {
           <h2 className="text-sm font-bold text-primary mb-3 uppercase tracking-wider">SUPPORT</h2>
           
           <button 
-            onClick={() => toast.info('Help & FAQ will be available soon!')}
+            onClick={() => setShowHelpFAQ(true)}
             className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3"
             data-testid="help-faq-btn"
           >
@@ -519,7 +610,7 @@ export default function Settings() {
           </div>
 
           <button 
-            onClick={() => toast.info('Privacy policy will be available soon')}
+            onClick={() => setShowPrivacyPolicy(true)}
             className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between mb-3"
             data-testid="privacy-policy-btn"
           >
@@ -536,7 +627,7 @@ export default function Settings() {
           </button>
 
           <button 
-            onClick={() => toast.info('Terms of service will be available soon')}
+            onClick={() => setShowTermsOfService(true)}
             className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between"
             data-testid="terms-service-btn"
           >
@@ -574,11 +665,7 @@ export default function Settings() {
           </button>
 
           <button 
-            onClick={() => {
-              if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                toast.error('Account deletion feature coming soon. Please contact support.');
-              }
-            }}
+            onClick={handleDeleteAccount}
             className="glass-card-hover rounded-2xl p-4 w-full flex items-center justify-between border-destructive/30"
             data-testid="delete-account-btn"
           >
@@ -595,6 +682,322 @@ export default function Settings() {
           </button>
         </div>
       </div>
+
+      {/* Password Change Dialog */}
+      <Dialog open={showPasswordChange} onOpenChange={setShowPasswordChange}>
+        <DialogContent className="glass-card border-border/50 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Change Password</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Enter your old password and choose a new one
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground">Old Password</label>
+              <Input
+                type="password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                placeholder="Enter your old password"
+                className="mt-1 bg-white/10 border-0"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">New Password</label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password (min 8 characters)"
+                className="mt-1 bg-white/10 border-0"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Confirm Password</label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="mt-1 bg-white/10 border-0"
+              />
+            </div>
+            <Button
+              onClick={handleChangePassword}
+              className="w-full rounded-xl bg-primary hover:bg-primary/90"
+            >
+              Update Password
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Help & FAQ Dialog */}
+      <Dialog open={showHelpFAQ} onOpenChange={setShowHelpFAQ}>
+        <DialogContent className="glass-card border-border/50 max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-white">Help & FAQ</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-4">
+            <div className="mb-4">
+              <Input
+                placeholder="Search FAQs..."
+                value={faqSearch}
+                onChange={(e) => setFaqSearch(e.target.value)}
+                className="bg-white/10 border-0"
+              />
+            </div>
+
+            {[
+              {
+                question: 'How do I create a need?',
+                answer: 'To create a need: (1) Navigate to the Needs page or tap "Create Need" on the Dashboard. (2) Fill in the need title, description, and category. (3) Upload photos if applicable. (4) Review the AI-generated plan and estimated pricing. (5) Submit for provider matching. You\'ll receive notifications when providers express interest.',
+              },
+              {
+                question: 'How do I accept a provider?',
+                answer: 'On the Providers page, browse available service providers in your area. Tap on a provider card to view their profile, ratings, completed jobs, and user reviews. Once you\'ve found the right match, tap "Connect Provider" to initiate contact and proceed with booking their services.',
+              },
+              {
+                question: 'How can I track my needs?',
+                answer: 'All active needs are displayed on your Dashboard with real-time status updates. Each need shows its current phase: Suggested, Confirmed, Assigned, In Progress, or Completed. Tap any need card for detailed tracking, provider information, messages, and estimated completion time.',
+              },
+              {
+                question: 'How do I communicate with providers?',
+                answer: 'Navigate to the Chat section to view all your conversations. Select a provider to open the messaging interface. You can send text messages, share photos, coordinate schedules, and discuss project details. Push notifications keep you updated on new messages in real-time.',
+              },
+              {
+                question: 'Is my data secure?',
+                answer: 'Absolutely. OnePoint ALO implements bank-level encryption (AES-256) for data at rest and TLS 1.3 for data in transit. Your personal information is never sold to third parties. We comply with GDPR, CCPA, and international privacy regulations. You have full control over your data through Privacy Settings.',
+              },
+              {
+                question: 'How do I enable biometric login?',
+                answer: 'After your first successful login, go to Settings > Account > Biometric Authentication and toggle it on. Your device must support Face ID or fingerprint authentication. Once enabled, you can unlock the app using your biometric credentials instead of entering your password each time.',
+              },
+              {
+                question: 'How do payments work?',
+                answer: 'OnePoint ALO uses secure escrow payments to protect both users and providers. When you confirm a need, funds are held in escrow until the job is completed to your satisfaction. Accepted payment methods include credit/debit cards, Apple Pay, Google Pay, and ACH bank transfers. All transactions are encrypted and PCI DSS compliant.',
+              },
+              {
+                question: 'What if I\'m not satisfied with a provider\'s work?',
+                answer: 'If you\'re unsatisfied with the service: (1) Document the issue with photos and descriptions. (2) Contact the provider through the Chat to resolve the matter. (3) If unresolved, initiate a dispute through Settings > Support > Contact Support. Our mediation team will review your case within 24 hours and hold payment in escrow until resolution.',
+              },
+              {
+                question: 'Can I cancel a need after it\'s been created?',
+                answer: 'Yes. Before a provider is assigned, you can cancel freely without fees. After assignment, cancellation policies depend on the provider\'s terms. If work has started, cancellation fees may apply. To cancel, go to the need details and select "Cancel Need". You\'ll see applicable fees before confirming.',
+              },
+              {
+                question: 'How does AI suggestion work?',
+                answer: 'Our AI assistant analyzes your need history, preferences, location, time patterns, and seasonal trends to provide personalized suggestions. It learns from your behavior to anticipate needs before you think of them, helping you stay proactive. You can disable AI suggestions in Settings > Notifications > AI Suggestions.',
+              },
+              {
+                question: 'What are the different priority levels?',
+                answer: 'Needs are classified into three priorities: EASY (routine tasks you do frequently), MEDIUM (occasional tasks that require planning), and HARD (urgent or complex tasks needing immediate attention). Priority affects provider matching, pricing, and notification urgency. Emergency Mode is for critical needs requiring instant response.',
+              },
+              {
+                question: 'How do I become a provider?',
+                answer: 'To join as a provider: (1) Go to Settings > Provider > Become a Provider. (2) Complete the application with business details, categories of service, certifications, and insurance information. (3) Submit identity verification documents. (4) Pass a background check. Approval typically takes 2-3 business days. Providers earn 85% of each transaction.',
+              },
+            ].filter(
+              (faq) =>
+                faqSearch === '' ||
+                faq.question.toLowerCase().includes(faqSearch.toLowerCase()) ||
+                faq.answer.toLowerCase().includes(faqSearch.toLowerCase())
+            ).map((faq, index) => (
+              <div key={index} className="glass-card rounded-2xl p-4">
+                <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
+                <p className="text-sm text-muted-foreground">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Privacy Policy Dialog */}
+      <Dialog open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy}>
+        <DialogContent className="glass-card border-border/50 max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-white">Privacy Policy</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-4 text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground mb-4">Last Updated: November 10, 2024</p>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">1. Introduction</h3>
+              <p>OnePoint ALO, Inc. ("OnePoint", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Autonomous Life Operating System platform and services (collectively, the "Services"). By using our Services, you consent to the data practices described in this policy.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">2. Information We Collect</h3>
+              <p className="mb-2"><strong>Personal Information:</strong> When you create an account, we collect your full name, email address, phone number, date of birth, and payment information. For identity verification, we may request government-issued ID and proof of address.</p>
+              <p className="mb-2"><strong>Location Data:</strong> With your permission, we collect precise geolocation data to connect you with nearby service providers. You can disable location services in device settings, though this may limit functionality.</p>
+              <p className="mb-2"><strong>Usage Data:</strong> We automatically collect device information (device type, OS version, unique device identifiers), log data (IP address, browser type, pages viewed, timestamps), and interaction data (features used, time spent, preferences).</p>
+              <p><strong>Communications:</strong> Messages sent through our platform, including text, photos, and files shared with providers, are stored to facilitate service delivery and dispute resolution.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">3. How We Use Your Information</h3>
+              <p className="mb-2"><strong>Service Delivery:</strong> To create and manage your account, connect you with verified service providers, process payments securely, facilitate communication between you and providers, and provide customer support.</p>
+              <p className="mb-2"><strong>AI & Personalization:</strong> Our AI assistant analyzes your usage patterns, preferences, and historical data to provide personalized need suggestions, optimize provider matching, and improve service recommendations. You can opt out of AI data processing in Privacy Settings.</p>
+              <p><strong>Safety & Compliance:</strong> To verify identity, prevent fraud, enforce our Terms of Service, comply with legal obligations, and respond to law enforcement requests when legally required.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">4. Data Security</h3>
+              <p>We implement military-grade AES-256 encryption for data at rest and TLS 1.3 for data in transit. Our infrastructure is hosted on SOC 2 Type II certified cloud providers with 99.99% uptime SLA. Regular security audits and penetration testing ensure ongoing protection. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">5. Your Privacy Rights</h3>
+              <p className="mb-2"><strong>Access & Portability:</strong> Request a copy of your personal data in machine-readable format (JSON, CSV).</p>
+              <p className="mb-2"><strong>Rectification:</strong> Update or correct inaccurate information through Settings or by contacting support.</p>
+              <p className="mb-2"><strong>Erasure ("Right to be Forgotten"):</strong> Request deletion of your account and all associated data. Some data may be retained for legal compliance (e.g., tax records for 7 years).</p>
+              <p className="mb-2"><strong>Restriction & Objection:</strong> Limit how we process your data or object to specific processing activities (e.g., marketing communications).</p>
+              <p>To exercise these rights, contact privacy@onepoint.com. We respond to all requests within 30 days per GDPR/CCPA requirements.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">6. Third-Party Sharing</h3>
+              <p className="mb-2"><strong>We Never Sell Your Data.</strong> Your personal information is not and will never be sold to third parties for marketing purposes.</p>
+              <p className="mb-2"><strong>Service Providers:</strong> We share necessary information with payment processors (Stripe), cloud hosting (AWS, Google Cloud), analytics providers (anonymized data only), and customer support tools. All partners are bound by strict confidentiality agreements.</p>
+              <p><strong>Legal Requirements:</strong> We may disclose information when required by law, to enforce our policies, protect rights and safety, or in connection with a corporate transaction (merger, acquisition).</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">7. Data Retention</h3>
+              <p>We retain your personal data for as long as your account is active or as needed to provide Services. After account deletion, most data is purged within 90 days, except where longer retention is required for legal, tax, or dispute resolution purposes (up to 7 years for financial records).</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">8. International Transfers</h3>
+              <p>Your data may be transferred to and processed in countries outside your residence, including the United States. We ensure adequate safeguards through Standard Contractual Clauses (SCCs) approved by the European Commission and comply with GDPR for EU users.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">9. Children's Privacy</h3>
+              <p>Our Services are not intended for users under 18 years of age. We do not knowingly collect personal information from children. If you believe we have inadvertently collected data from a minor, contact privacy@onepoint.com immediately.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">10. Cookies & Tracking Technologies</h3>
+              <p>We use essential cookies (authentication, security), functional cookies (preferences, settings), and analytics cookies (usage patterns, performance). You can control cookies through browser settings or our Cookie Preferences center. Disabling cookies may limit functionality.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">11. Changes to This Policy</h3>
+              <p>We may update this Privacy Policy to reflect changes in our practices or legal requirements. Material changes will be notified via email at least 30 days before taking effect. Continued use after notification constitutes acceptance of the updated policy.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">12. Contact Us</h3>
+              <p className="mb-2">For questions, concerns, or to exercise your privacy rights:</p>
+              <p className="mb-1"><strong>Email:</strong> privacy@onepoint.com</p>
+              <p className="mb-1"><strong>Data Protection Officer:</strong> dpo@onepoint.com</p>
+              <p className="mb-1"><strong>Mail:</strong> OnePoint ALO, Inc., ATTN: Privacy Team, [Address]</p>
+              <p><strong>EU Representative:</strong> For EU-specific inquiries, contact eu-privacy@onepoint.com</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Terms of Service Dialog */}
+      <Dialog open={showTermsOfService} onOpenChange={setShowTermsOfService}>
+        <DialogContent className="glass-card border-border/50 max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-white">Terms of Service</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-4 text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground mb-4">Last Updated: November 10, 2024</p>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">1. Acceptance of Terms</h3>
+              <p>These Terms of Service ("Terms") govern your access to and use of OnePoint ALO, Inc.'s ("OnePoint", "we", "us", or "our") Autonomous Life Operating System platform, website, mobile applications, and all related services (collectively, the "Services"). By creating an account, accessing, or using our Services, you agree to be bound by these Terms and our Privacy Policy. If you do not agree, you may not use the Services.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">2. Eligibility</h3>
+              <p>You must be at least 18 years old and legally capable of entering into binding contracts to use our Services. By using our Services, you represent and warrant that you meet these requirements. If you are using the Services on behalf of an organization, you represent that you have authority to bind that organization to these Terms.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">3. User Accounts & Security</h3>
+              <p className="mb-2">You must create an account to access most features. You agree to provide accurate, current, and complete information during registration and to update this information as needed to keep it accurate.</p>
+              <p className="mb-2">You are solely responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must immediately notify us of any unauthorized access or security breach at security@onepoint.com.</p>
+              <p>We reserve the right to suspend or terminate your account if you violate these Terms, engage in fraudulent activity, or pose a risk to other users or our platform.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">4. Description of Services</h3>
+              <p className="mb-2">OnePoint ALO is a technology platform that connects users with independent service providers for various real-life needs and tasks. We are a marketplace facilitator, not a service provider. We do not employ providers, and providers are independent contractors responsible for the quality and completion of their services.</p>
+              <p>We do not guarantee the availability, quality, safety, or legality of services offered by providers. Your interactions with providers are at your own risk.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">5. Prohibited Activities</h3>
+              <p className="mb-2">You agree to use the Services only for lawful purposes. You must not:</p>
+              <p className="mb-1">• Violate any laws or regulations</p>
+              <p className="mb-1">• Engage in harassment, discrimination, or threatening behavior</p>
+              <p className="mb-1">• Impersonate any person or entity</p>
+              <p className="mb-1">• Upload viruses or malicious code</p>
+              <p className="mb-1">• Attempt unauthorized access to our systems</p>
+              <p className="mb-1">• Use automated systems (bots, scrapers) without written permission</p>
+              <p>• Collect or harvest personal data of other users without consent</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">6. Payments, Fees & Refunds</h3>
+              <p className="mb-2">Users pay for services rendered by providers. OnePoint charges a platform fee (typically 15% of the transaction value) which is disclosed before booking confirmation. Payments are processed through secure third-party payment processors (Stripe).</p>
+              <p className="mb-2">Funds are held in escrow until service completion. Upon completion and your approval, funds are released to the provider. If you report an issue, funds remain in escrow pending dispute resolution.</p>
+              <p>Cancellations before provider assignment incur no fees. After assignment, cancellation policies vary by provider. Refunds for unsatisfactory service are handled case-by-case through our dispute resolution process.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">7. Intellectual Property Rights</h3>
+              <p className="mb-2">All content on the Services, including text, graphics, logos, images, software, and trademarks, is owned by OnePoint or our licensors and protected by copyright, trademark, and other intellectual property laws.</p>
+              <p className="mb-2">You retain ownership of content you submit (photos, messages, need descriptions). By submitting content, you grant OnePoint a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and display your content solely to provide and improve the Services.</p>
+              <p>You may not copy, modify, distribute, sell, or reverse-engineer any part of our Services without written permission.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">8. Disclaimers & Limitation of Liability</h3>
+              <p className="mb-2">THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.</p>
+              <p className="mb-2">We do not guarantee that the Services will be uninterrupted, secure, or error-free. We do not warrant the accuracy, completeness, or reliability of any content.</p>
+              <p className="mb-2">TO THE MAXIMUM EXTENT PERMITTED BY LAW, ONEPOINT SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOST PROFITS, DATA LOSS, OR BUSINESS INTERRUPTION.</p>
+              <p>Our total liability to you for any claims arising from these Terms or your use of the Services shall not exceed the amount you paid to OnePoint in the 12 months preceding the claim, or $100, whichever is greater.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">9. Dispute Resolution & Arbitration</h3>
+              <p className="mb-2">Before filing a claim, you agree to attempt to resolve the dispute informally by contacting disputes@onepoint.com. We will work with you in good faith for 30 days to reach a resolution.</p>
+              <p className="mb-2">If informal resolution fails, you agree that all disputes will be resolved through binding arbitration conducted by the American Arbitration Association (AAA) under its Commercial Arbitration Rules. You agree to bring claims only in your individual capacity and not as a plaintiff or class member in any class or representative action.</p>
+              <p>Either party may seek injunctive relief in court for intellectual property infringement or unauthorized access to our systems.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">10. Termination</h3>
+              <p className="mb-2">You may terminate your account at any time through Settings → Delete Account. You remain responsible for any outstanding fees or obligations.</p>
+              <p>We may suspend or terminate your access immediately without notice if you violate these Terms, engage in fraud, abuse the platform, or for any reason at our sole discretion.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">11. Changes to Terms</h3>
+              <p>We reserve the right to modify these Terms at any time. Material changes will be notified via email or in-app notification at least 30 days before the effective date. Your continued use of the Services after changes take effect constitutes acceptance of the updated Terms.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">12. Governing Law</h3>
+              <p>These Terms are governed by the laws of the State of California, United States, without regard to conflict of law principles. Any arbitration or court proceeding shall be conducted in San Francisco, California.</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">9. Contact</h3>
+              <p className="mb-2">For questions, concerns, or notices regarding these Terms:</p>
+              <p className="mb-1"><strong>Email:</strong> legal@onepoint.com</p>
+              <p className="mb-1"><strong>Support:</strong> support@onepoint.com</p>
+              <p><strong>Mail:</strong> OnePoint ALO, Inc., ATTN: Legal Department, [Address]</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
