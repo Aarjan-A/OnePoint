@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { Home, CheckCircle, Users, MessageCircle, Settings } from 'lucide-react';
+import { Home, CheckCircle, MapPin, MessageCircle, Settings } from 'lucide-react';
 
 export default function Navigation() {
   const location = useLocation();
@@ -8,7 +8,7 @@ export default function Navigation() {
   const navItems = [
     { path: '/', icon: Home, label: 'Dashboard' },
     { path: '/needs', icon: CheckCircle, label: 'Needs' },
-    { path: '/providers', icon: Users, label: 'Providers' },
+    { path: '/providers', icon: MapPin, label: 'Providers' },
     { path: '/chat', icon: MessageCircle, label: 'Chat' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
