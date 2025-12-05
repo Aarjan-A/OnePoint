@@ -60,7 +60,6 @@ export default function Dashboard() {
   const quickActions = [
     { icon: Plus, label: 'Create Need', color: 'primary', onClick: () => setCreateNeedOpen(true) },
     { icon: Search, label: 'Find Providers', color: 'accent', onClick: () => navigate('/providers') },
-    { icon: Mic, label: 'Voice Assistant', color: 'accent', onClick: () => navigate('/chat') },
     { icon: AlertCircle, label: 'Emergency Mode', color: 'destructive', onClick: () => toast.info('Emergency mode coming soon!') },
   ];
 
