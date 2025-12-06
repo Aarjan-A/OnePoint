@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { blink, supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { initializeStorageBuckets } from '@/lib/initStorage';
 
 interface User {
@@ -65,23 +65,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Try Supabase first as it's configured
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      
+
       if (error) {
         throw new Error(error.message || 'Failed to sign in. Please check your credentials.');
       }
-      
-      // Update user state
+
       if (data.user) {
+        // Fetch user profile from database
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
         setUser({
           id: data.user.id,
           email: data.user.email,
-          displayName: data.user.user_metadata?.full_name || data.user.user_metadata?.fullName,
+          displayName: profile?.full_name || data.user.user_metadata?.full_name || data.user.email?.split('@')[0],
           metadata: data.user.user_metadata
         });
       }
-      
+
       return data;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to sign in. Please check your credentials.');
@@ -90,34 +95,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      // Use Supabase for signup
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { 
+          data: {
             full_name: fullName,
             fullName: fullName
           },
+          emailRedirectTo: window.location.origin,
         },
       });
-      
+
       if (error) {
         throw new Error(error.message || 'Failed to create account. Please try again.');
       }
-      
-      // Insert user profile
+
       if (data.user) {
-        await supabase.from('users').insert({
+        // Insert user profile - this will be the user's profile in the database
+        const { error: insertError } = await supabase.from('users').insert({
           id: data.user.id,
           email,
           full_name: fullName,
           wallet_balance: 0,
           kyc_status: 'pending',
-        }).catch((insertError) => {
-          console.warn('Could not insert user profile:', insertError);
         });
-        
+
+        if (insertError) {
+          console.error('Profile creation error:', insertError);
+        }
+
         // Update user state
         setUser({
           id: data.user.id,
@@ -126,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           metadata: { fullName }
         });
       }
-      
+
       return data;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to create account. Please try again.');

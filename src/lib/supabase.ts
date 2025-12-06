@@ -1,15 +1,6 @@
 
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '@blinkdotnew/sdk';
 
-// Blink SDK client for authentication (more reliable, no CORS issues)
-export const blink = createClient({
-  projectId: 'onepoint-alo-autonomous-life-os-6jt5y3yx',
-  authRequired: false,
-  auth: { mode: 'headless' }
-});
-
-// Fallback Supabase client for data storage
 const supabaseUrl = 'https://ftjwtxbmxcbaatzaefmp.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0and0eGJteGNiYWF0emFlZm1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2Nzk1MTIsImV4cCI6MjA3ODI1NTUxMn0.xcwBpkIZc3M1MZ2J82uiLger7i55yb14-dTUWhzB6Sk';
 

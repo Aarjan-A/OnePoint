@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { Fingerprint, Mail, Lock, User, Phone, Apple } from 'lucide-react';
 import { countryCodes } from '@/lib/countryCodes';
 import ModernLogo from '@/components/ModernLogo';
-import { blink } from '@/lib/supabase';
 
 type AuthMode = 'start' | 'create-account' | 'login';
 type SignUpMethod = 'email' | 'phone';
@@ -110,14 +109,8 @@ export default function AuthPage() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      // In production: implement Google OAuth via Blink SDK or Firebase
-      const result = await blink.auth.signInWithGoogle?.();
-      if (result) {
-        toast.success('Logged in with Google!');
-        navigate('/');
-      } else {
-        toast.info('Google login - Sign in with Google to continue');
-      }
+      // TODO: Implement Google OAuth
+      toast.info('Google login coming soon! Please use email login for now.');
     } catch (error: any) {
       toast.error(error.message || 'Google login failed');
     } finally {
@@ -128,14 +121,8 @@ export default function AuthPage() {
   const handleAppleLogin = async () => {
     setLoading(true);
     try {
-      // In production: implement Apple OAuth via Blink SDK or Firebase
-      const result = await blink.auth.signInWithApple?.();
-      if (result) {
-        toast.success('Logged in with Apple!');
-        navigate('/');
-      } else {
-        toast.info('Apple login - Sign in with Apple ID to continue');
-      }
+      // TODO: Implement Apple OAuth
+      toast.info('Apple login coming soon! Please use email login for now.');
     } catch (error: any) {
       toast.error(error.message || 'Apple login failed');
     } finally {
